@@ -1,4 +1,4 @@
-import {query} from '../config/db';
+import {query} from '../config/db.js';
 
 export async function logEvent(eventType , details = {}) {
     try{

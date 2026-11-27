@@ -1,4 +1,4 @@
-import {query} from '../config/db';
+import {query} from '../config/db.js';
 
 export async function findByTelegramId(telegramId) {
     const { rows } = await query(
@@ -8,7 +8,7 @@ export async function findByTelegramId(telegramId) {
     return rows[0] || null
 };
 
-export async function existByEmail(email) {
+export async function existsByEmail(email) {
     const { rows } = await query(
         'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
         [email]
