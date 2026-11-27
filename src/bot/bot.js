@@ -8,7 +8,11 @@ import { registerHelpCommand } from './commands/help.js';
 import { registerRegistrationHandler } from './handlers/registration.js';
 
 export function createBot() {
-  const bot = new Bot(env.botToken);
+  const bot = new Bot(env.botToken, {
+    client: {
+      apiRoot: env.telegramApiRoot,
+    },
+  });
   const pendingRegistrations = new Map();
 
   registerStartCommand(bot, pendingRegistrations);

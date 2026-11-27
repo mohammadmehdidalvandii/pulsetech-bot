@@ -19,9 +19,9 @@ for (const key of requiredEnvVars){
     }
 };
 
-
 export const env = {
     botToken: process.env.BOT_TOKEN,
+    telegramApiRoot: process.env.TELEGRAM_API_ROOT || 'https://api.telegram.org',
     db:{
         host: process.env.DB_HOST,
         port: Number(process.env.DB_PORT) || 5432,
