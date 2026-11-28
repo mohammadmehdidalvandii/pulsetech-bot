@@ -2,6 +2,7 @@ import * as userRepo from '../repositories/user.repo.js';
 import * as deliveryRepo from '../repositories/delivery.repo.js';
 import { logEvent } from '../repositories/event.repo.js';
 import { buildTelegramMessages } from './splitter.service.js';
+import { reportError, ErrorSeverity } from './error.service.js';
 
 function isBlockedError(err) {
   const description = err?.description || err?.message || '';
@@ -54,15 +55,19 @@ export async function deliverNewsletterToUser(bot, user, newsletter) {
       errorMessage
     );
 
-    await logEvent(
-      retryResult.status === 'pending' ? 'delivery_retry_scheduled' : 'delivery_failed',
-      {
+    const isFinalFailure = retryResult.status !== 'pending';
+
+    await reportError({
+      context: isFinalFailure ? 'delivery.final_failed' : 'delivery.retry_scheduled',
+      error: err,
+      severity: isFinalFailure ? ErrorSeverity.ERROR : ErrorSeverity.WARN,
+      notifyAdmin: isFinalFailure,
+      meta: {
         user_id: user.id,
         newsletter_id: newsletter.id,
         attempt: currentAttempt,
-        error: errorMessage,
-      }
-    );
+      },
+    });
 
     return { outcome: retryResult.status };
   }

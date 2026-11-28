@@ -1,8 +1,9 @@
 import * as deliveryRepo from '../repositories/delivery.repo.js';
 import * as newsletterRepo from '../repositories/newsletter.repo.js';
 import { deliverNewsletterToUser } from '../services/delivery.service.js';
+import { reportError, ErrorSeverity } from '../services/error.service.js';
 
-const POLL_INTERVAL_MS = 30 * 1000; // بررسی صف هر ۳۰ ثانیه
+const POLL_INTERVAL_MS = 30 * 1000;    
 
 export function startRetryWorker(bot) {
   let isProcessing = false;
@@ -34,7 +35,11 @@ export function startRetryWorker(bot) {
         );
       }
     } catch (err) {
-      console.error('⚠️ Retry worker error:', err.message);
+      await reportError({
+        context: 'worker.retry',
+        error: err,
+        severity: ErrorSeverity.ERROR,
+      });
     } finally {
       isProcessing = false;
     }

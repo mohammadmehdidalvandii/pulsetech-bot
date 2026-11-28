@@ -1,5 +1,5 @@
 import { broadcastNewsletter, broadcastNoNews } from '../services/broadcast.service.js';
-import { logEvent } from '../repositories/event.repo.js';
+import { reportError, ErrorSeverity } from '../services/error.service.js';
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -46,8 +46,11 @@ export async function handleRequest(req, res, bot) {
       const stats = await broadcastNewsletter(bot, newsletterId);
       return sendJson(res, 200, { success: true, stats });
     } catch (err) {
-      console.error('❌ Error in /internal/broadcast:', err.message);
-      await logEvent('internal_api_error', { route: '/internal/broadcast', error: err.message });
+      await reportError({
+        context: 'api.internal.broadcast',
+        error: err,
+        severity: ErrorSeverity.CRITICAL,
+      });
       return sendJson(res, 500, { success: false, error: err.message });
     }
   }
@@ -57,8 +60,11 @@ export async function handleRequest(req, res, bot) {
       const result = await broadcastNoNews(bot);
       return sendJson(res, 200, { success: true, result });
     } catch (err) {
-      console.error('❌ Error in /internal/no-news:', err.message);
-      await logEvent('internal_api_error', { route: '/internal/no-news', error: err.message });
+      await reportError({
+        context: 'api.internal.no-news',
+        error: err,
+        severity: ErrorSeverity.ERROR,
+      });
       return sendJson(res, 500, { success: false, error: err.message });
     }
   }
