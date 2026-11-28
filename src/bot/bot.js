@@ -6,6 +6,7 @@ import { registerStopCommand } from './commands/stop.js';
 import { registerStatusCommand } from './commands/status.js';
 import { registerHelpCommand } from './commands/help.js';
 import { registerTestErrorCommand } from './commands/testError.js';
+import { registerBroadcastCommand } from './commands/broadcast.js';
 import { registerRegistrationHandler } from './handlers/registration.js';
 
 export function createBot() {
@@ -21,6 +22,7 @@ export function createBot() {
   registerStatusCommand(bot);
   registerHelpCommand(bot);
   registerTestErrorCommand(bot);
+  registerBroadcastCommand(bot);
   registerRegistrationHandler(bot, pendingRegistrations);
 
   bot.catch(async (err) => {
