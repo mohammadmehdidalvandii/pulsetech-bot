@@ -31,6 +31,7 @@ services:
       NODE_OPTIONS: --dns-result-order=ipv4first
       BOT_TOKEN: ${BOT_TOKEN}
       TELEGRAM_API_ROOT: ${TELEGRAM_API_ROOT:-https://api.telegram.org}
+      ADMIN_TELEGRAM_ID: ${ADMIN_TELEGRAM_ID:-}
       DB_HOST: pulsetech-postgres
       DB_PORT: 5432
       POSTGRES_DB: ${DB_NAME}
