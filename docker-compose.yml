@@ -32,6 +32,8 @@ services:
       BOT_TOKEN: ${BOT_TOKEN}
       TELEGRAM_API_ROOT: ${TELEGRAM_API_ROOT:-https://api.telegram.org}
       ADMIN_TELEGRAM_ID: ${ADMIN_TELEGRAM_ID:-}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
       DB_HOST: pulsetech-postgres
       DB_PORT: 5432
       POSTGRES_DB: ${DB_NAME}

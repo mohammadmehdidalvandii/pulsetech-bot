@@ -1,3 +1,4 @@
+import { env } from './config/env.js';
 import { pool } from './config/db.js';
 import { createBot } from './bot/bot.js';
 import { startInternalApiServer } from './api/server.js';
@@ -38,11 +39,15 @@ async function bootstrap() {
     process.exit(1);
   });
 
+  const isWebhookMode = Boolean(env.webhook.url);
+
   const shutdown = async () => {
     console.log('\n🛑 Shutting down PulseTech Bot...');
     clearInterval(retryTimer);
     apiServer.close();
-    await bot.stop();
+    if (!isWebhookMode) {
+      await bot.stop();
+    }
     await pool.end();
     process.exit(0);
   };
@@ -50,11 +55,21 @@ async function bootstrap() {
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
 
-  await bot.start({
-    onStart: (botInfo) => {
-      console.log(`🚀 PulseTech Bot (@${botInfo.username}) is running...`);
-    },
-  });
+  if (isWebhookMode) {
+    const fullWebhookUrl = `${env.webhook.url.replace(/\/$/, '')}/webhook`;
+    await bot.api.setWebhook(fullWebhookUrl, {
+      secret_token: env.webhook.secret || undefined,
+      drop_pending_updates: false,
+    });
+    const me = await bot.api.getMe();
+    console.log(`🚀 PulseTech Bot (@${me.username}) running in WEBHOOK mode -> ${fullWebhookUrl}`);
+  } else {
+    await bot.start({
+      onStart: (botInfo) => {
+        console.log(`🚀 PulseTech Bot (@${botInfo.username}) is running in POLLING mode...`);
+      },
+    });
+  }
 }
 
 bootstrap().catch((err) => {
