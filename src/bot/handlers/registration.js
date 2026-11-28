@@ -7,6 +7,16 @@ import { MESSAGES, getConsentMessage } from '../messages.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+async function safeAnswerCallback(ctx, options = {}) {
+  try {
+    await ctx.answerCallbackQuery(options);
+  } catch (err) {
+    if (!err.message?.includes('query is too old')) {
+      console.warn('⚠️ answerCallbackQuery warning:', err.message);
+    }
+  }
+}
+
 export function registerRegistrationHandler(bot, pendingRegistrations) {
   bot.on('message:text', async (ctx, next) => {
     const telegramId = ctx.from.id;
@@ -59,12 +69,14 @@ export function registerRegistrationHandler(bot, pendingRegistrations) {
     const state = pendingRegistrations.get(telegramId);
 
     if (!state || state.step !== 'AWAITING_CONSENT') {
-      await ctx.answerCallbackQuery({
+      await safeAnswerCallback(ctx, {
         text: 'این درخواست منقضی شده است. لطفاً /start را بزنید.',
         show_alert: true,
       });
       return;
     }
+
+    await safeAnswerCallback(ctx, { text: 'در حال تکمیل ثبت‌نام...' });
 
     try {
       const newUser = await userRepo.createUser({
@@ -80,8 +92,7 @@ export function registerRegistrationHandler(bot, pendingRegistrations) {
         telegram_id: telegramId,
       });
 
-      await ctx.answerCallbackQuery({ text: 'ثبت‌نام شما تکمیل شد!' });
-      await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+      await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => {});
 
       const latestNewsletter = await newsletterRepo.findLatest();
 
@@ -95,10 +106,7 @@ export function registerRegistrationHandler(bot, pendingRegistrations) {
     } catch (err) {
       console.error('❌ Error completing registration:', err.message);
       await logEvent('db_error', { step: 'consent_accept', error: err.message });
-      await ctx.answerCallbackQuery({
-        text: 'خطایی در ثبت اطلاعات رخ داد. دوباره تلاش کنید.',
-        show_alert: true,
-      });
+      await ctx.reply('⚠️ خطایی در ثبت اطلاعات رخ داد. لطفاً دوباره تلاش کنید.');
     }
   });
 
@@ -106,8 +114,8 @@ export function registerRegistrationHandler(bot, pendingRegistrations) {
     const telegramId = ctx.from.id;
     pendingRegistrations.delete(telegramId);
 
-    await ctx.answerCallbackQuery({ text: 'ثبت‌نام لغو شد.' });
-    await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+    await safeAnswerCallback(ctx, { text: 'ثبت‌نام لغو شد.' });
+    await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => {});
     return ctx.reply(MESSAGES.CONSENT_DECLINED, { parse_mode: 'HTML' });
   });
 }
