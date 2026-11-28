@@ -2,9 +2,12 @@ import { env } from '../../config/env.js';
 import { reportError, ErrorSeverity } from '../../services/error.service.js';
 
 export function registerTestErrorCommand(bot) {
-  bot.command('testerror', async (ctx) => {
+  bot.hears(/^\/testerror$/i, async (ctx) => {
     const senderId = String(ctx.from?.id || '');
-    if (!env.adminTelegramId || senderId !== String(env.adminTelegramId)) {
+    const adminId = String(env.adminTelegramId || '').trim();
+
+    if (!adminId || senderId !== adminId) {
+      console.warn(`⚠️ Unauthorized /testerror attempt from senderId=${senderId}, expected=${adminId}`);
       return;
     }
 
